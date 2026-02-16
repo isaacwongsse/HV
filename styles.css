@@ -46,7 +46,7 @@ html, body {
 
 #title-bar h1 {
   margin: 0;
-  font-size: clamp(14px, 4.5vw, 20px);
+  font-size: clamp(21px, 6.8vw, 30px);
   font-weight: 800;
   color: #2c2416;
   letter-spacing: 0.02em;
@@ -68,6 +68,20 @@ html, body {
   width: min(90px, 22vw);
   min-width: 60px;
   border-right: 2px solid #8b7355;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 6px;
+}
+
+.timeline-current-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5a4a3a;
+  text-align: center;
+  line-height: 1.25;
+  word-break: break-word;
 }
 
 #timeline-scroll-wrapper {
@@ -92,7 +106,7 @@ html, body {
 .day-label {
   position: absolute;
   top: 2px;
-  font-size: clamp(10px, 2.8vw, 13px);
+  font-size: clamp(15px, 4.2vw, 20px);
   font-weight: 700;
   color: #5a4a3a;
   white-space: nowrap;
@@ -115,7 +129,7 @@ html, body {
 .hour-label {
   position: absolute;
   bottom: 22px;
-  font-size: clamp(11px, 3.2vw, 15px);
+  font-size: clamp(17px, 4.8vw, 23px);
   font-weight: 700;
   color: #2c2416;
   transform: translateX(-50%);
@@ -170,14 +184,14 @@ html, body {
 #row-market .row-label  { background: #7a9e6d; }
 
 .stop-en {
-  font-size: clamp(12px, 3.5vw, 16px);
+  font-size: 13px;
   font-weight: 800;
   color: #f5f0e8;
   line-height: 1.3;
 }
 
 .stop-zh {
-  font-size: clamp(11px, 3.2vw, 15px);
+  font-size: 13px;
   font-weight: 600;
   color: #f5f0e8;
   line-height: 1.3;
@@ -209,17 +223,19 @@ html, body {
   );
 }
 
+/* 20px top zone for remaining-time reminder above next departure */
 .departure-cell {
   position: absolute;
-  top: 50%;
-  min-width: max(24px, 5vw);
-  height: 90%;
+  top: 20px;
+  width: 30px;
+  min-width: 30px;
+  height: calc(100% - 20px);
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(12px, 3.5vw, 18px);
+  font-size: clamp(18px, 5.3vw, 27px);
   font-weight: 700;
   color: #f5f0e8;
   pointer-events: auto;
@@ -227,9 +243,25 @@ html, body {
   user-select: none;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  transform: translateY(-50%) rotate(180deg);
+  transform: rotate(180deg);
   letter-spacing: 1px;
   padding: 4px 2px;
+}
+
+.remaining-time {
+  position: absolute;
+  top: 0;
+  height: 20px;
+  font-size: clamp(15px, 3.8vw, 18px);
+  font-weight: 700;
+  color: #2c2416;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 8;
+  display: none;
+  align-items: center;
+  transform: translateX(-100%);
+  padding-right: 2px;
 }
 
 /* Per-row departure colors matching label */
@@ -274,6 +306,18 @@ html, body {
   border-radius: 50%;
 }
 
+.needle-time {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -4px);
+  font-size: clamp(15px, 4.2vw, 18px);
+  font-weight: 700;
+  color: #c0392b;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* ===== PART 3: Nav Bar ===== */
 #navbar {
   flex-shrink: 0;
@@ -299,7 +343,7 @@ html, body {
   background: none;
   border: none;
   color: #5a4a3a;
-  font-size: clamp(11px, 2.8vw, 12px);
+  font-size: clamp(17px, 4.2vw, 18px);
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -312,7 +356,7 @@ html, body {
 }
 
 .nav-btn wa-icon {
-  font-size: clamp(20px, 6vw, 24px);
+  font-size: clamp(30px, 9vw, 36px);
   margin-bottom: 2px;
 }
 
@@ -342,7 +386,7 @@ html, body {
 
   .hour-label {
     bottom: 16px;
-    font-size: 10px;
+    font-size: 15px;
   }
 
   .tick-hour    { height: 14px; }

@@ -1,13 +1,18 @@
 // ===== Constants =====
-const CELL_WIDTH = 20;
+const CELL_WIDTH = 30;
 const CELL_MINUTES = 5;
 const TOTAL_DAYS = 14;
+const DAY_GAP = 60; // px between each day
 const START_HOUR = 6;
 const END_HOUR = 24;
 const VISIBLE_HOURS = END_HOUR - START_HOUR; // 18
 const CELLS_PER_DAY = (VISIBLE_HOURS * 60) / CELL_MINUTES; // 216
-const DAY_WIDTH = CELLS_PER_DAY * CELL_WIDTH;    // 4320
-const TRACK_WIDTH = TOTAL_DAYS * DAY_WIDTH;       // 60480
+const DAY_WIDTH = CELLS_PER_DAY * CELL_WIDTH;
+const TRACK_WIDTH = TOTAL_DAYS * DAY_WIDTH + (TOTAL_DAYS - 1) * DAY_GAP;
+
+function getDayOffset(dayIndex) {
+  return dayIndex * (DAY_WIDTH + DAY_GAP);
+}
 
 // ===== Hong Kong Public Holidays =====
 // Source: https://www.gov.hk/en/about/abouthk/holiday/
@@ -202,7 +207,7 @@ function getNowX() {
   const dayIndex = Math.floor(minSinceToday / (24 * 60));
   const minInDay = minSinceToday - dayIndex * 24 * 60;
   const minFromDayStart = minInDay - START_HOUR * 60;
-  return dayIndex * DAY_WIDTH + (minFromDayStart / CELL_MINUTES) * CELL_WIDTH;
+  return getDayOffset(dayIndex) + (minFromDayStart / CELL_MINUTES) * CELL_WIDTH;
 }
 
 function getDayDate(dayIndex) {
@@ -217,16 +222,16 @@ function buildTimeline() {
   track.style.width = TRACK_WIDTH + 'px';
 
   for (let day = 0; day < TOTAL_DAYS; day++) {
-    const dayOffset = day * DAY_WIDTH;
+    const dayOffset = getDayOffset(day);
     const date = getDayDate(day);
     const dow = date.getDay();
     const holiday = isHKHoliday(date);
 
-    // Day separator
+    // Day separator at start of gap (after previous day's content)
     if (day > 0) {
       const sep = document.createElement('div');
       sep.className = 'day-separator';
-      sep.style.left = dayOffset + 'px';
+      sep.style.left = (day * DAY_WIDTH + (day - 1) * DAY_GAP) + 'px';
       track.appendChild(sep);
     }
 
@@ -289,16 +294,16 @@ function renderDepartures(trackId, stop) {
   track.style.width = TRACK_WIDTH + 'px';
 
   for (let day = 0; day < TOTAL_DAYS; day++) {
-    const dayOffset = day * DAY_WIDTH;
+    const dayOffset = getDayOffset(day);
     const date = getDayDate(day);
     const info = getDaySchedule(date);
     const times = info.schedule[stop];
 
-    // Day separator in timetable
+    // Day separator in timetable (at start of gap)
     if (day > 0) {
       const sep = document.createElement('div');
       sep.className = 'row-day-separator';
-      sep.style.left = dayOffset + 'px';
+      sep.style.left = (day * DAY_WIDTH + (day - 1) * DAY_GAP) + 'px';
       track.appendChild(sep);
     }
 
@@ -356,6 +361,26 @@ function setupScrollSync() {
     }, { passive: true });
   });
 
+  // Update left-side date to show the day at current scroll position
+  function updateTimelineDate() {
+    const el = document.getElementById('timeline-current-date');
+    if (!el) return;
+    const scrollLeft = scrollContainers[0].scrollLeft;
+    const dayIndex = Math.min(TOTAL_DAYS - 1, Math.max(0, Math.floor(scrollLeft / (DAY_WIDTH + DAY_GAP))));
+    const date = getDayDate(dayIndex);
+    const dow = date.getDay();
+    const holiday = isHKHoliday(date);
+    const dm = date.getDate();
+    const mon = date.toLocaleDateString('en', { month: 'short' });
+    let labelText = WEEKDAYS_SHORT[dow] + ' ' + dm + ' ' + mon;
+    if (dayIndex === 0) labelText = 'Today - ' + labelText;
+    if (holiday) {
+      const hName = getHolidayName(date);
+      labelText += ' - ' + hName.en + ' (' + hName.zh + ')';
+    }
+    el.textContent = labelText;
+  }
+
   // Sync every frame so all columns stay in sync without delay (scroll events are throttled on mobile)
   function syncScroll() {
     requestAnimationFrame(syncScroll);
@@ -365,11 +390,13 @@ function setupScrollSync() {
       scrollContainers[i].scrollLeft = targetScroll;
     }
     requestAnimationFrame(() => { syncing = false; });
+    updateTimelineDate();
   }
   requestAnimationFrame(syncScroll);
+  updateTimelineDate();
 }
 
-// ===== Time Needle =====
+// ===== Time Needle + Current time label + Remaining time =====
 function createNeedles() {
   const trackIds = ['timeline-track', 'track-hanley', 'track-mtr', 'track-market'];
   const needles = trackIds.map(id => {
@@ -378,19 +405,68 @@ function createNeedles() {
     needle.className = 'time-needle';
     needle.id = 'needle-' + id;
     track.appendChild(needle);
-    return needle;
+    return { id, needle };
+  });
+
+  // Current time label on timeline needle (above red dot)
+  const timelineNeedle = needles[0].needle;
+  const needleTimeEl = document.createElement('span');
+  needleTimeEl.className = 'needle-time';
+  timelineNeedle.appendChild(needleTimeEl);
+
+  // Remaining time reminder per row (in 20px top zone, aligned to next departure)
+  const rowTrackIds = ['track-hanley', 'track-mtr', 'track-market'];
+  const remainingTimeEls = rowTrackIds.map(id => {
+    const track = document.getElementById(id);
+    const rt = document.createElement('div');
+    rt.className = 'remaining-time';
+    track.appendChild(rt);
+    return rt;
   });
 
   function update() {
     const x = getNowX();
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
     if (x < 0 || x > TRACK_WIDTH) {
-      needles.forEach(n => n.style.display = 'none');
+      needles.forEach(({ needle }) => { needle.style.display = 'none'; });
+      needleTimeEl.style.display = 'none';
+      remainingTimeEls.forEach(el => { el.style.display = 'none'; });
+      updatePastStatus();
       return;
     }
-    needles.forEach(n => {
-      n.style.display = 'block';
-      n.style.left = x + 'px';
+
+    needles.forEach(({ needle }) => {
+      needle.style.display = 'block';
+      needle.style.left = x + 'px';
     });
+    needleTimeEl.textContent = timeStr;
+    needleTimeEl.style.display = 'block';
+
+    // Remaining time: next departure per row
+    rowTrackIds.forEach((trackId, rowIndex) => {
+      const track = document.getElementById(trackId);
+      const cells = track.querySelectorAll('.departure-cell');
+      let nextCell = null;
+      for (let i = 0; i < cells.length; i++) {
+        if (cells[i]._xPos > x) {
+          nextCell = cells[i];
+          break;
+        }
+      }
+      const rtEl = remainingTimeEls[rowIndex];
+      if (nextCell) {
+        const pxToNext = nextCell._xPos - x;
+        const minRemaining = Math.round((pxToNext / CELL_WIDTH) * CELL_MINUTES);
+        rtEl.textContent = minRemaining + ' min';
+        rtEl.style.left = nextCell._xPos + 'px';
+        rtEl.style.display = 'flex';
+      } else {
+        rtEl.style.display = 'none';
+      }
+    });
+
     updatePastStatus();
   }
 
