@@ -339,34 +339,26 @@ function updatePastStatus() {
   });
 }
 
-// ===== Scroll Sync =====
+// ===== Single scroll container (timeline + 3 rows move together, no delay) =====
 let scrollContainers;
 
 function setupScrollSync() {
-  scrollContainers = [
-    document.getElementById('timeline-scroll-wrapper'),
-    document.querySelector('#row-hanley .row-scroll-wrapper'),
-    document.querySelector('#row-mtr .row-scroll-wrapper'),
-    document.querySelector('#row-market .row-scroll-wrapper'),
-  ];
+  const wrapper = document.getElementById('schedule-scroll-wrapper');
+  const labelsEl = document.querySelector('.schedule-left-labels');
 
-  // Leader: the container the user last scrolled (we sync from this one every frame)
-  let leader = scrollContainers[0];
-  let syncing = false;
+  scrollContainers = [wrapper];
 
-  scrollContainers.forEach(container => {
-    container.addEventListener('scroll', function () {
-      if (syncing) return;
-      leader = this;
-    }, { passive: true });
-  });
+  // Content width = label + track (CSS calc uses --track-width)
+  wrapper.style.setProperty('--track-width', TRACK_WIDTH + 'px');
 
-  // Update left-side date to show the day at current scroll position
+  // Update left-side date when user scrolls (track position = scrollLeft - label width)
   function updateTimelineDate() {
     const el = document.getElementById('timeline-current-date');
     if (!el) return;
-    const scrollLeft = scrollContainers[0].scrollLeft;
-    const dayIndex = Math.min(TOTAL_DAYS - 1, Math.max(0, Math.floor(scrollLeft / (DAY_WIDTH + DAY_GAP))));
+    const scrollLeft = wrapper.scrollLeft;
+    const labelWidth = labelsEl.offsetWidth;
+    const trackPosition = Math.max(0, scrollLeft - labelWidth);
+    const dayIndex = Math.min(TOTAL_DAYS - 1, Math.max(0, Math.floor(trackPosition / (DAY_WIDTH + DAY_GAP))));
     const date = getDayDate(dayIndex);
     const dow = date.getDay();
     const holiday = isHKHoliday(date);
@@ -381,18 +373,7 @@ function setupScrollSync() {
     el.textContent = labelText;
   }
 
-  // Sync every frame so all columns stay in sync without delay (scroll events are throttled on mobile)
-  function syncScroll() {
-    requestAnimationFrame(syncScroll);
-    const targetScroll = leader.scrollLeft;
-    syncing = true;
-    for (let i = 0; i < scrollContainers.length; i++) {
-      scrollContainers[i].scrollLeft = targetScroll;
-    }
-    requestAnimationFrame(() => { syncing = false; });
-    updateTimelineDate();
-  }
-  requestAnimationFrame(syncScroll);
+  wrapper.addEventListener('scroll', updateTimelineDate, { passive: true });
   updateTimelineDate();
 }
 
@@ -476,10 +457,14 @@ function createNeedles() {
 
 // ===== Scroll to Now =====
 function scrollToNow() {
+  const wrapper = scrollContainers[0];
+  if (!wrapper) return;
   const x = getNowX();
-  const viewportWidth = scrollContainers[0].offsetWidth;
-  const target = Math.max(0, x - viewportWidth * 0.25);
-  scrollContainers.forEach(c => { c.scrollLeft = target; });
+  const labelWidth = document.querySelector('.schedule-left-labels').offsetWidth;
+  const viewportWidth = wrapper.offsetWidth;
+  const trackViewWidth = viewportWidth - labelWidth;
+  const target = Math.max(0, labelWidth + x - trackViewWidth * 0.25);
+  wrapper.scrollLeft = target;
 }
 
 // ===== Init =====
