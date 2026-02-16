@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f5f0e8">
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Bus%20Schedule%22%2C%22short_name%22%3A%22Bus%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23f5f0e8%22%2C%22theme_color%22%3A%22%23f5f0e8%22%7D">
+  <title>Bus Departures</title>
+  <link rel="stylesheet" href="https://early.webawesome.com/webawesome@3/dist/styles/theme.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="https://early.webawesome.com/webawesome@3/dist/webawesome.loader.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Title -->
+    <div id="title-bar">
+      <h1>Bus Departures (巴士開出時間)</h1>
+    </div>
+
+    <!-- PART 1: Timeline -->
+    <div id="timeline-container">
+      <div class="label-spacer"></div>
+      <div id="timeline-scroll-wrapper">
+        <div id="timeline-track"></div>
+      </div>
+    </div>
+
+    <!-- PART 2: Timetable -->
+    <div id="timetable-container">
+      <div class="timetable-row" id="row-hanley">
+        <div class="row-label">
+          <span class="stop-en">Hanley Villa</span>
+          <span class="stop-zh">恆麗園</span>
+        </div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-hanley"></div>
+        </div>
+      </div>
+
+      <div class="timetable-row" id="row-mtr">
+        <div class="row-label">
+          <span class="stop-en">MTR</span>
+          <span class="stop-zh">港鐡荃灣站</span>
+        </div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-mtr"></div>
+        </div>
+      </div>
+
+      <div class="timetable-row" id="row-market">
+        <div class="row-label">
+          <span class="stop-en">Market Place</span>
+          <span class="stop-zh">荃灣街市</span>
+        </div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-market"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PART 3: Nav Bar -->
+    <div id="navbar">
+      <button class="nav-btn" id="btn-home" aria-label="Home">
+        <wa-icon name="house" variant="regular"></wa-icon>
+        Home
+      </button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
