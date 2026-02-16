@@ -20,31 +20,45 @@
       <h1>Bus Departures<br>(巴士開出時間)</h1>
     </div>
 
-    <!-- Single scroll: timeline + 3 rows move together, left labels sticky -->
-    <div id="schedule-scroll-wrapper" class="schedule-scroll-wrapper">
-      <div class="schedule-scroll-content" id="schedule-scroll-content">
-        <div class="schedule-left-labels">
-          <div class="schedule-label-cell schedule-label-timeline">
-            <div id="timeline-current-date" class="timeline-current-date"></div>
-          </div>
-          <div class="schedule-label-cell row-label" id="row-label-hanley">
-            <span class="stop-en">Hanley Villa</span>
-            <span class="stop-zh">恆麗園</span>
-          </div>
-          <div class="schedule-label-cell row-label" id="row-label-mtr">
-            <span class="stop-en">MTR</span>
-            <span class="stop-zh">港鐡荃灣站</span>
-          </div>
-          <div class="schedule-label-cell row-label" id="row-label-market">
-            <span class="stop-en">Market Place</span>
-            <span class="stop-zh">荃灣街市</span>
-          </div>
+    <!-- PART 1: Timeline -->
+    <div id="timeline-container">
+      <div class="label-spacer">
+        <div id="timeline-current-date" class="timeline-current-date"></div>
+      </div>
+      <div id="timeline-scroll-wrapper">
+        <div id="timeline-track"></div>
+      </div>
+    </div>
+
+    <!-- PART 2: Timetable -->
+    <div id="timetable-container">
+      <div class="timetable-row" id="row-hanley">
+        <div class="row-label">
+          <span class="stop-en">Hanley Villa</span>
+          <span class="stop-zh">恆麗園</span>
         </div>
-        <div class="schedule-tracks" id="schedule-tracks">
-          <div id="timeline-track" class="schedule-track schedule-track-timeline"></div>
-          <div id="track-hanley" class="row-track schedule-track"></div>
-          <div id="track-mtr" class="row-track schedule-track"></div>
-          <div id="track-market" class="row-track schedule-track"></div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-hanley"></div>
+        </div>
+      </div>
+
+      <div class="timetable-row" id="row-mtr">
+        <div class="row-label">
+          <span class="stop-en">MTR</span>
+          <span class="stop-zh">港鐡荃灣站</span>
+        </div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-mtr"></div>
+        </div>
+      </div>
+
+      <div class="timetable-row" id="row-market">
+        <div class="row-label">
+          <span class="stop-en">Market Place</span>
+          <span class="stop-zh">荃灣街市</span>
+        </div>
+        <div class="row-scroll-wrapper">
+          <div class="row-track" id="track-market"></div>
         </div>
       </div>
     </div>
