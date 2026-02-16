@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#f5f0e8">
   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Bus%20Schedule%22%2C%22short_name%22%3A%22Bus%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23f5f0e8%22%2C%22theme_color%22%3A%22%23f5f0e8%22%7D">
   <title>Bus Departures</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://early.webawesome.com/webawesome@3/dist/styles/theme.css" />
   <link rel="stylesheet" href="styles.css" />
   <script type="module" src="https://early.webawesome.com/webawesome@3/dist/webawesome.loader.js"></script>
@@ -17,6 +18,7 @@
   <div id="app">
     <!-- Title -->
     <div id="title-bar">
+      <i class="fa-solid fa-bus-side title-bar-icon"></i>
       <h1>Bus Departures<br>(巴士開出時間)</h1>
     </div>
 
@@ -34,6 +36,7 @@
     <div id="timetable-container">
       <div class="timetable-row" id="row-hanley">
         <div class="row-label">
+          <i class="fa-solid fa-tree-city row-label-icon"></i>
           <span class="stop-en">Hanley Villa</span>
           <span class="stop-zh">恆麗園</span>
         </div>
@@ -44,6 +47,7 @@
 
       <div class="timetable-row" id="row-mtr">
         <div class="row-label">
+          <i class="fa-solid fa-train row-label-icon"></i>
           <span class="stop-en">MTR</span>
           <span class="stop-zh">港鐡荃灣站</span>
         </div>
@@ -54,6 +58,7 @@
 
       <div class="timetable-row" id="row-market">
         <div class="row-label">
+          <i class="fa-solid fa-basket-shopping row-label-icon"></i>
           <span class="stop-en">Market Place</span>
           <span class="stop-zh">荃灣街市</span>
         </div>
@@ -66,8 +71,7 @@
     <!-- PART 3: Nav Bar -->
     <div id="navbar">
       <button class="nav-btn" id="btn-home" aria-label="Home">
-        <wa-icon name="house" variant="regular"></wa-icon>
-        Home
+        <i class="fa-solid fa-house"></i>
       </button>
     </div>
   </div>

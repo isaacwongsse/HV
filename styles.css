@@ -41,7 +41,16 @@ html, body {
   padding: 8px 12px;
   padding-top: calc(8px + env(safe-area-inset-top, 0));
   border-bottom: 2px solid #8b7355;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.title-bar-icon {
+  color: #2c2416;
+  font-size: clamp(20px, 6vw, 28px);
+  flex-shrink: 0;
 }
 
 #title-bar h1 {
@@ -65,8 +74,8 @@ html, body {
 
 .label-spacer {
   flex-shrink: 0;
-  width: min(90px, 22vw);
-  min-width: 60px;
+  width: 85px;
+  min-width: 85px;
   border-right: 2px solid #8b7355;
   display: flex;
   flex-direction: column;
@@ -76,7 +85,7 @@ html, body {
 }
 
 .timeline-current-date {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: #5a4a3a;
   text-align: center;
@@ -167,8 +176,8 @@ html, body {
 
 .row-label {
   flex-shrink: 0;
-  width: min(90px, 22vw);
-  min-width: 60px;
+  width: 85px;
+  min-width: 85px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -176,6 +185,13 @@ html, body {
   padding: 4px 6px;
   border-right: 2px solid #8b7355;
   z-index: 5;
+}
+
+.row-label-icon {
+  color: #f5f0e8;
+  font-size: 14px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
 /* Earth tone row colors */
@@ -355,9 +371,9 @@ html, body {
   opacity: 0.6;
 }
 
+.nav-btn i,
 .nav-btn wa-icon {
-  font-size: clamp(30px, 9vw, 36px);
-  margin-bottom: 2px;
+  font-size: clamp(24px, 7vw, 32px);
 }
 
 /* ===== Small phones (e.g. 320px width) ===== */
@@ -369,8 +385,8 @@ html, body {
 
   .label-spacer,
   .row-label {
-    width: 60px;
-    min-width: 56px;
+    width: 85px;
+    min-width: 85px;
   }
 
   .row-label {

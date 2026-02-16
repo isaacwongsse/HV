@@ -175,6 +175,9 @@ const SCHEDULE_SUNDAY = {
 const WEEKDAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const WEEKDAYS_ZH = ['日','一','二','三','四','五','六'];
 
+// Extra times added only on Saturday (not on Saturday that is a public holiday)
+const SATURDAY_EXTRA_TIMES = { hanley: '10:20', mtr: '10:30', market: '10:35' };
+
 function getDaySchedule(date) {
   const dow = date.getDay();
   const holiday = isHKHoliday(date);
@@ -297,7 +300,20 @@ function renderDepartures(trackId, stop) {
     const dayOffset = getDayOffset(day);
     const date = getDayDate(day);
     const info = getDaySchedule(date);
-    const times = info.schedule[stop];
+    let times = info.schedule[stop].slice();
+
+    // Saturday (not public holiday): add extra time for this stop if defined
+    const dow = date.getDay();
+    if (dow === 6 && !info.isHoliday && SATURDAY_EXTRA_TIMES[stop]) {
+      const extra = SATURDAY_EXTRA_TIMES[stop];
+      const alreadyHas = times.some(raw => parseTime(raw).timeStr === extra);
+      if (!alreadyHas) times.push(extra);
+      times.sort((a, b) => {
+        const ta = parseTime(a).timeStr;
+        const tb = parseTime(b).timeStr;
+        return ta.localeCompare(tb);
+      });
+    }
 
     // Day separator in timetable (at start of gap)
     if (day > 0) {
