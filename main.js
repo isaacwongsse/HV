@@ -343,6 +343,54 @@ function renderDepartures(trackId, stop) {
   }
 }
 
+// ===== Departure cell click: show remaining time from current time (red line) =====
+function setupCellTooltip() {
+  const tooltip = document.getElementById('cell-tooltip');
+  if (!tooltip) return;
+  let hideTimer = null;
+
+  function showTooltip(cell, text) {
+    tooltip.textContent = text;
+    tooltip.classList.add('is-visible');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideTooltip, 2500);
+    requestAnimationFrame(function () {
+      const rect = cell.getBoundingClientRect();
+      const ttRect = tooltip.getBoundingClientRect();
+      let left = rect.left + (rect.width / 2) - (ttRect.width / 2);
+      let top = rect.top - ttRect.height - 8;
+      if (top < 8) top = rect.bottom + 8;
+      if (left < 8) left = 8;
+      if (left + ttRect.width > window.innerWidth - 8) left = window.innerWidth - ttRect.width - 8;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    });
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove('is-visible');
+  }
+
+  document.querySelectorAll('.row-track').forEach(track => {
+    track.addEventListener('click', function (e) {
+      const cell = e.target.closest('.departure-cell');
+      if (!cell) return;
+      const nowX = getNowX();
+      const diffPx = cell._xPos - nowX;
+      const diffMin = Math.round((diffPx / CELL_WIDTH) * CELL_MINUTES);
+      let text;
+      if (diffMin < 0) text = Math.abs(diffMin) + ' min ago';
+      else if (diffMin === 0) text = 'Now';
+      else text = 'In ' + diffMin + ' min';
+      showTooltip(cell, text);
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.departure-cell')) hideTooltip();
+  });
+}
+
 // ===== Update Past Status (live) =====
 function updatePastStatus() {
   const nowX = getNowX();
@@ -498,6 +546,56 @@ function scrollToNow() {
   scrollContainers.forEach(c => { c.scrollLeft = target; });
 }
 
+// ===== Map modal (iframe: Google Maps embed) =====
+function setupMapModal() {
+  const modal = document.getElementById('map-modal');
+  const iframe = document.getElementById('map-iframe');
+  const closeBtn = document.querySelector('.map-modal-close');
+  const backdrop = document.querySelector('.map-modal-backdrop');
+  if (!modal || !iframe) return;
+
+  function openMap(url, embedSrc, query) {
+    // Prefer direct map link (e.g. maps.app.goo.gl): open in new tab
+    if (url && url.trim()) {
+      window.open(url.trim(), '_blank', 'noopener');
+      return;
+    }
+    if (embedSrc && embedSrc.trim()) {
+      iframe.src = embedSrc.trim();
+      modal.classList.add('is-open');
+    } else if (query) {
+      const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+      window.open(searchUrl, '_blank', 'noopener');
+    }
+  }
+
+  function closeMap() {
+    modal.classList.remove('is-open');
+    iframe.src = 'about:blank';
+  }
+
+  document.querySelectorAll('.row-label[data-map-url], .row-label[data-map-src], .row-label[data-map-query]').forEach(function (label) {
+    label.addEventListener('click', function () {
+      const url = (this.getAttribute('data-map-url') || '').trim();
+      const src = (this.getAttribute('data-map-src') || '').trim();
+      const query = this.getAttribute('data-map-query') || '';
+      openMap(url, src, query);
+    });
+    label.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const url = (this.getAttribute('data-map-url') || '').trim();
+        const src = (this.getAttribute('data-map-src') || '').trim();
+        const query = this.getAttribute('data-map-query') || '';
+        openMap(url, src, query);
+      }
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeMap);
+  if (backdrop) backdrop.addEventListener('click', closeMap);
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', function () {
   document.documentElement.style.setProperty('--cell-width', CELL_WIDTH + 'px');
@@ -510,6 +608,8 @@ document.addEventListener('DOMContentLoaded', function () {
   setupScrollSync();
   createNeedles();
   scrollToNow();
+  setupCellTooltip();
+  setupMapModal();
 
   // Home button
   document.getElementById('btn-home').addEventListener('click', scrollToNow);

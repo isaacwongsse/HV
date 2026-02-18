@@ -36,7 +36,7 @@
     <!-- PART 2: Timetable -->
     <div id="timetable-container">
       <div class="timetable-row" id="row-hanley">
-        <div class="row-label">
+        <div class="row-label" data-map-url="https://maps.app.goo.gl/GudiET4GEzgkctaj8" tabindex="0" role="button" aria-label="Show Hanley Villa location on map">
           <i class="fa-solid fa-tree-city row-label-icon"></i>
           <span class="stop-en">Hanley Villa</span>
           <span class="stop-zh">恆麗園</span>
@@ -47,7 +47,7 @@
       </div>
 
       <div class="timetable-row" id="row-mtr">
-        <div class="row-label">
+        <div class="row-label" data-map-url="https://maps.app.goo.gl/kFh9BX4YQxbaGaTf8" tabindex="0" role="button" aria-label="Show MTR location on map">
           <i class="fa-solid fa-train row-label-icon"></i>
           <span class="stop-en">MTR</span>
           <span class="stop-zh">港鐡荃灣站</span>
@@ -58,7 +58,7 @@
       </div>
 
       <div class="timetable-row" id="row-market">
-        <div class="row-label">
+        <div class="row-label" data-map-url="https://maps.app.goo.gl/qd8prxwNGAiiBtFg6" tabindex="0" role="button" aria-label="Show Market Place location on map">
           <i class="fa-solid fa-basket-shopping row-label-icon"></i>
           <span class="stop-en">Market Place</span>
           <span class="stop-zh">荃灣街市</span>
@@ -74,6 +74,20 @@
       <button class="nav-btn" id="btn-home" aria-label="Home">
         <i class="fa-solid fa-house"></i>
       </button>
+    </div>
+  </div>
+
+  <!-- Tooltip when clicking a departure cell (remaining time from red line) -->
+  <div id="cell-tooltip" class="cell-tooltip" aria-live="polite"></div>
+
+  <!-- Map modal: click row-label to show bus stop location. To use iframe: set data-map-src to the embed URL from Google Maps (Share → Embed a map). If empty, opens Google Maps in a new tab. -->
+  <div id="map-modal" class="map-modal" role="dialog" aria-modal="true" aria-label="Bus stop location">
+    <div class="map-modal-backdrop"></div>
+    <div class="map-modal-box">
+      <button type="button" class="map-modal-close" aria-label="Close map">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <iframe id="map-iframe" class="map-iframe" title="Bus stop map"></iframe>
     </div>
   </div>
 

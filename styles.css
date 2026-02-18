@@ -185,11 +185,13 @@ html, body {
   padding: 4px 6px;
   border-right: 2px solid #8b7355;
   z-index: 5;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .row-label-icon {
   color: #f5f0e8;
-  font-size: 14px;
+  font-size: 28px;
   margin-bottom: 2px;
   flex-shrink: 0;
 }
@@ -409,4 +411,85 @@ html, body {
   .tick-half    { height: 10px; }
   .tick-quarter { height: 7px; }
   .tick-five    { height: 5px; }
+}
+
+/* ===== Departure cell tooltip (remaining time from red line) ===== */
+.cell-tooltip {
+  position: fixed;
+  z-index: 100;
+  padding: 8px 12px;
+  background: #2c2416;
+  color: #f5f0e8;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  pointer-events: none;
+  display: none;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+.cell-tooltip.is-visible {
+  display: block;
+}
+
+/* ===== Map modal (iframe = Google Maps) ===== */
+.map-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.2s, opacity 0.2s;
+}
+.map-modal.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+.map-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(44, 36, 22, 0.6);
+}
+.map-modal-box {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 70vh;
+  max-height: 400px;
+  background: #f5f0e8;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.map-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #ede6d6;
+  color: #2c2416;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.map-modal-close:active {
+  opacity: 0.8;
+}
+.map-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
