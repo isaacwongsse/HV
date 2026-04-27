@@ -430,6 +430,7 @@ function updatePastStatus() {
 
 // ===== Scroll Sync =====
 let scrollContainers;
+let homeScrollActive = false;
 
 function setupScrollSync() {
   scrollContainers = [
@@ -446,7 +447,7 @@ function setupScrollSync() {
 
   scrollContainers.forEach(container => {
     container.addEventListener('scroll', function () {
-      if (syncing) return;
+      if (syncing || homeScrollActive) return;
       leader = this;
       lastUserScroll = performance.now();
       if (!syncRafId) syncRafId = requestAnimationFrame(syncLoop);
@@ -609,9 +610,14 @@ function scrollToNow() {
   const x = getNowX();
   const viewportWidth = scrollContainers[0].offsetWidth;
   const target = Math.max(0, x - viewportWidth * 0.25);
+
+  // Suppress the scroll-sync loop while the smooth animations run so it
+  // doesn't stomp them with instant scrollLeft assignments mid-flight.
+  homeScrollActive = true;
   for (const c of scrollContainers) {
     c.scrollTo({ left: target, behavior: 'smooth' });
   }
+  setTimeout(() => { homeScrollActive = false; }, 1200);
 }
 
 // ===== Map modal (iframe: Google Maps embed) =====
