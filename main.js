@@ -198,13 +198,16 @@ function parseTime(raw) {
   return { timeStr, isStarred };
 }
 
-// today at midnight
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
+function getToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 function getNowX() {
   const now = new Date();
-  const msSinceToday = now.getTime() - TODAY.getTime();
+  const today = getToday();
+  const msSinceToday = now.getTime() - today.getTime();
   const minSinceToday = msSinceToday / 60000;
   // Each day in track starts at START_HOUR, so subtract the offset
   const dayIndex = Math.floor(minSinceToday / (24 * 60));
@@ -214,7 +217,7 @@ function getNowX() {
 }
 
 function getDayDate(dayIndex) {
-  const d = new Date(TODAY);
+  const d = getToday();
   d.setDate(d.getDate() + dayIndex);
   return d;
 }
@@ -343,6 +346,21 @@ function renderDepartures(trackId, stop) {
   }
 }
 
+function formatDuration(totalMin) {
+  if (totalMin === 0) return 'Now';
+  const isPast = totalMin < 0;
+  const abs = Math.abs(totalMin);
+  const days = Math.floor(abs / (24 * 60));
+  const hours = Math.floor((abs % (24 * 60)) / 60);
+  const mins = abs % 60;
+  const parts = [];
+  if (days > 0) parts.push(days + ' day' + (days > 1 ? 's' : ''));
+  if (hours > 0) parts.push(hours + ' hour' + (hours > 1 ? 's' : ''));
+  if (mins > 0 || parts.length === 0) parts.push(mins + ' min');
+  const text = parts.join(', ');
+  return isPast ? text + ' ago' : 'In ' + text;
+}
+
 // ===== Departure cell click: show remaining time from current time (red line) =====
 function setupCellTooltip() {
   const tooltip = document.getElementById('cell-tooltip');
@@ -378,11 +396,7 @@ function setupCellTooltip() {
       const nowX = getNowX();
       const diffPx = cell._xPos - nowX;
       const diffMin = Math.round((diffPx / CELL_WIDTH) * CELL_MINUTES);
-      let text;
-      if (diffMin < 0) text = Math.abs(diffMin) + ' min ago';
-      else if (diffMin === 0) text = 'Now';
-      else text = 'In ' + diffMin + ' min';
-      showTooltip(cell, text);
+      showTooltip(cell, formatDuration(diffMin));
     });
   });
 
@@ -414,18 +428,20 @@ function setupScrollSync() {
     document.querySelector('#row-market .row-scroll-wrapper'),
   ];
 
-  // Leader: the container the user last scrolled (we sync from this one every frame)
   let leader = scrollContainers[0];
   let syncing = false;
+  let lastUserScroll = 0;
+  let syncRafId = null;
 
   scrollContainers.forEach(container => {
     container.addEventListener('scroll', function () {
       if (syncing) return;
       leader = this;
+      lastUserScroll = performance.now();
+      if (!syncRafId) syncRafId = requestAnimationFrame(syncLoop);
     }, { passive: true });
   });
 
-  // Update left-side date to show the day at current scroll position
   function updateTimelineDate() {
     const el = document.getElementById('timeline-current-date');
     if (!el) return;
@@ -445,18 +461,24 @@ function setupScrollSync() {
     el.textContent = labelText;
   }
 
-  // Sync every frame so all columns stay in sync without delay (scroll events are throttled on mobile)
-  function syncScroll() {
-    requestAnimationFrame(syncScroll);
+  function syncLoop(now) {
+    // Stop syncing 300ms after the last user scroll event
+    if (now - lastUserScroll > 300) {
+      syncRafId = null;
+      updateTimelineDate();
+      return;
+    }
+    syncRafId = requestAnimationFrame(syncLoop);
     const targetScroll = leader.scrollLeft;
     syncing = true;
     for (let i = 0; i < scrollContainers.length; i++) {
+      if (scrollContainers[i] === leader) continue;
       scrollContainers[i].scrollLeft = targetScroll;
     }
-    requestAnimationFrame(() => { syncing = false; });
+    syncing = false;
     updateTimelineDate();
   }
-  requestAnimationFrame(syncScroll);
+
   updateTimelineDate();
 }
 
@@ -508,19 +530,20 @@ function createNeedles() {
     needleTimeEl.textContent = timeStr;
     needleTimeEl.style.display = 'block';
 
-    // Remaining time: next departure per row
+    // Remaining time + next departure highlight per row
     rowTrackIds.forEach((trackId, rowIndex) => {
       const track = document.getElementById(trackId);
       const cells = track.querySelectorAll('.departure-cell');
       let nextCell = null;
       for (let i = 0; i < cells.length; i++) {
-        if (cells[i]._xPos > x) {
+        cells[i].classList.remove('next');
+        if (!nextCell && cells[i]._xPos > x) {
           nextCell = cells[i];
-          break;
         }
       }
       const rtEl = remainingTimeEls[rowIndex];
       if (nextCell) {
+        nextCell.classList.add('next');
         const pxToNext = nextCell._xPos - x;
         const minRemaining = Math.round((pxToNext / CELL_WIDTH) * CELL_MINUTES);
         rtEl.textContent = minRemaining + ' min';
@@ -538,12 +561,44 @@ function createNeedles() {
   setInterval(update, 30000);
 }
 
+// ===== Theme Switcher =====
+const THEMES = ['earth', 'slate', 'dark', 'mono'];
+const THEME_COLORS = {
+  earth: '#f5f0e8',
+  slate: '#f2f2f7',
+  dark:  '#1c1c1e',
+  mono:  '#fafafa'
+};
+
+function setupThemeSwitcher() {
+  const btn = document.getElementById('btn-theme');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!btn) return;
+
+  const saved = localStorage.getItem('theme');
+  let current = THEMES.includes(saved) ? saved : 'earth';
+  applyTheme(current);
+
+  btn.addEventListener('click', function () {
+    const idx = THEMES.indexOf(current);
+    current = THEMES[(idx + 1) % THEMES.length];
+    applyTheme(current);
+  });
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+    if (meta) meta.content = THEME_COLORS[theme];
+  }
+}
+
 // ===== Scroll to Now =====
 function scrollToNow() {
   const x = getNowX();
   const viewportWidth = scrollContainers[0].offsetWidth;
   const target = Math.max(0, x - viewportWidth * 0.25);
-  scrollContainers.forEach(c => { c.scrollLeft = target; });
+  // Only animate the leader; the sync loop mirrors to the rest each frame
+  scrollContainers[0].scrollTo({ left: target, behavior: 'smooth' });
 }
 
 // ===== Map modal (iframe: Google Maps embed) =====
@@ -599,6 +654,8 @@ function setupMapModal() {
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', function () {
   document.documentElement.style.setProperty('--cell-width', CELL_WIDTH + 'px');
+
+  setupThemeSwitcher();
 
   buildTimeline();
   renderDepartures('track-hanley', 'hanley');
