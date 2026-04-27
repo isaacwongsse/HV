@@ -14,6 +14,16 @@ function getDayOffset(dayIndex) {
   return dayIndex * (DAY_WIDTH + DAY_GAP);
 }
 
+// Convert an X position on the timeline to minutes-from-midnight (wall-clock time).
+// This accounts for the 6-hour overnight gap (midnight–6 AM) that is compressed
+// into the 60px DAY_GAP separator — a jump pixel subtraction cannot capture.
+function xPosToMinutesFromMidnight(xPos) {
+  const dayIndex = Math.floor(xPos / (DAY_WIDTH + DAY_GAP));
+  const xInDay = xPos - dayIndex * (DAY_WIDTH + DAY_GAP);
+  const minFrom6AM = (xInDay / CELL_WIDTH) * CELL_MINUTES;
+  return dayIndex * 24 * 60 + START_HOUR * 60 + minFrom6AM;
+}
+
 // ===== Hong Kong Public Holidays =====
 // Source: https://www.gov.hk/en/about/abouthk/holiday/
 const HK_HOLIDAYS = {
@@ -393,9 +403,10 @@ function setupCellTooltip() {
     track.addEventListener('click', function (e) {
       const cell = e.target.closest('.departure-cell');
       if (!cell) return;
-      const nowX = getNowX();
-      const diffPx = cell._xPos - nowX;
-      const diffMin = Math.round((diffPx / CELL_WIDTH) * CELL_MINUTES);
+      const now = new Date();
+      const nowMinFromMidnight = now.getHours() * 60 + now.getMinutes();
+      const cellMinFromMidnight = xPosToMinutesFromMidnight(cell._xPos);
+      const diffMin = Math.round(cellMinFromMidnight - nowMinFromMidnight);
       showTooltip(cell, formatDuration(diffMin));
     });
   });
@@ -544,8 +555,9 @@ function createNeedles() {
       const rtEl = remainingTimeEls[rowIndex];
       if (nextCell) {
         nextCell.classList.add('next');
-        const pxToNext = nextCell._xPos - x;
-        const minRemaining = Math.round((pxToNext / CELL_WIDTH) * CELL_MINUTES);
+        const nowMinFromMidnight = now.getHours() * 60 + now.getMinutes();
+        const nextMinFromMidnight = xPosToMinutesFromMidnight(nextCell._xPos);
+        const minRemaining = Math.round(nextMinFromMidnight - nowMinFromMidnight);
         rtEl.textContent = minRemaining + ' min';
         rtEl.style.left = nextCell._xPos + 'px';
         rtEl.style.display = 'flex';
@@ -597,8 +609,9 @@ function scrollToNow() {
   const x = getNowX();
   const viewportWidth = scrollContainers[0].offsetWidth;
   const target = Math.max(0, x - viewportWidth * 0.25);
-  // Only animate the leader; the sync loop mirrors to the rest each frame
-  scrollContainers[0].scrollTo({ left: target, behavior: 'smooth' });
+  for (const c of scrollContainers) {
+    c.scrollTo({ left: target, behavior: 'smooth' });
+  }
 }
 
 // ===== Map modal (iframe: Google Maps embed) =====
